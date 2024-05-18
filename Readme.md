@@ -6,7 +6,19 @@ This is a proof of concept for calling syscalls directly via Rust for EDR evasio
 Windows kernel instead of using the normal Windows API. This is well implemented in C, but I could not find
 any references to an implementation in Rust - so hopefully this showcases that.
 
+This POC demonstrates a call down into NtOpenProcess; for this to be a fully functional malware loader there are
+a few other API calls that you must rebuild as syscalls, so this just demonstrates the technique as a POC.
+
 [Blog post](https://fluxsec.red) & [YouTube](https://www.youtube.com/@FluxSec) video incoming!
+
+## Usage
+
+```shell
+./demo.exe <pid>
+
+# or if running from source code:
+cargo run -- <pid>
+```
 
 ![image](https://github.com/0xflux/Rust-syscall-EDR-evasion/assets/49762827/61137b3a-788e-4dcd-afee-6543dfa69aab)
 
