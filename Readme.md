@@ -22,7 +22,7 @@ There are different ways in which EDR’s will perform hooking, a few of the mor
 
 ## Inline Hooking:
 
-I have written a blog post about this technique, as inspired by many devs in this space, but none more than
+I have previously written a [blog post about this technique (in C++)](https://fluxsec.red/dll-injection-edr-evasion-1), as inspired by many devs in this space, but none more than
 Cr0w [website](https://www.crow.rip/crows-nest), 
 [Twitter](https://x.com/cr0ww_), 
 [here](https://fluxsec.red/dll-injection-edr-evasion-1). <3 big love if you read this.
