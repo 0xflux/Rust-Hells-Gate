@@ -8,6 +8,9 @@ any references to an implementation in Rust - so hopefully this showcases that.
 
 [Blog post](https://fluxsec.red) & [YouTube](https://www.youtube.com/@FluxSec) video incoming!
 
+![image](https://github.com/0xflux/Rust-syscall-EDR-evasion/assets/49762827/61137b3a-788e-4dcd-afee-6543dfa69aab)
+
+
 # Background
 
 EDR Hooking refers to the methods used by Endpoint Detection and Response (EDR) systems to monitor the behavior 
