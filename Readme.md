@@ -22,6 +22,15 @@ cargo run -- <pid>
 
 ![image](https://github.com/0xflux/Rust-syscall-EDR-evasion/assets/49762827/61137b3a-788e-4dcd-afee-6543dfa69aab)
 
+### Proof:
+
+Here's a side by side comparison of on the left making a call to OpenProcess via the Windows API 
+(commented out in the source code normally), and on the right is the binary dump when using the Syscall technique.
+As you can see, OpenProcess isn't listed!
+
+![image](https://github.com/0xflux/Rust-syscall-EDR-evasion/assets/49762827/65f66427-4b06-4070-8a35-782de96ce81b)
+
+
 
 # Background
 
