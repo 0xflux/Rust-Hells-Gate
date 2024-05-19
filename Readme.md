@@ -1,5 +1,7 @@
 # Hells Gate EDR evasion in Rust with Direct Syscalls
 
+<img width="1222" alt="image" src="https://github.com/0xflux/Rust-syscall-EDR-evasion/assets/49762827/b8a788fe-aeec-46b2-bce3-c12d98a2a01a">
+
 # About
 
 This is a proof of concept for calling syscalls directly via Rust for EDR evasion, by calling direct into the
