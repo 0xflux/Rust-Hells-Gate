@@ -142,7 +142,7 @@ fn nt_open_process(
     client_id: *mut ClientId,
     ssn: u32,
 ) -> NTSTATUS {
-    let status: u32; // define as u32 so it can go into the syscall ok
+    let status: i32; // define as u32 so it can go into the syscall ok
 
     unsafe {
         asm!(
