@@ -45,8 +45,7 @@ There are different ways in which EDR’s will perform hooking, a few of the mor
 
 I have previously written a [blog post about this technique (in C++)](https://fluxsec.red/dll-injection-edr-evasion-1), as inspired by many devs in this space, but none more than
 Cr0w [website](https://www.crow.rip/crows-nest), 
-[Twitter](https://x.com/cr0ww_), 
-[here](https://fluxsec.red/dll-injection-edr-evasion-1). <3 big love if you read this.
+[Twitter](https://x.com/cr0ww_). <3 big love if you read this.
 
 The EDR modifies the actual binary code of a function in memory. It typically replaces the first few bytes of 
 the function with a jump to its own monitoring code. When the hooked function is called, execution is diverted 
