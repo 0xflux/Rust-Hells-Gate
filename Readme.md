@@ -12,7 +12,9 @@ a few other API calls that you must rebuild as syscalls, so this just demonstrat
 This technique is also referred to as Hells Gate, so this is a hells gate implementation
 in Rust. Here is an excellent blog post about Hells Gate https://redops.at/en/blog/exploring-hells-gate.
 
-[Blog post](https://fluxsec.red) & [YouTube](https://www.youtube.com/@FluxSec) video incoming!
+Check my [blog post](https://fluxsec.red/rust-edr-evasion-hells-gate) for this technique! If you like this, 
+please subscribe to my [Twitter](https://twitter.com/0xfluxsec) and [YouTube](https://www.youtube.com/@FluxSec) 
+it would really help me!
 
 ## Usage
 
