@@ -112,7 +112,7 @@ pub struct ObjectAttributes {
     pub security_quality_of_service: *const c_void,
 }
 
-/// Get the address of the function we wish to call
+/// Get the SSN of the NTAPI function we wish to call
 fn get_ssn(nt_function: PCSTR) -> Option<u32> {
     let ntdll = unsafe { LoadLibraryA(PCSTR(b"ntdll.dll\0".as_ptr())) };
     if ntdll.is_err() {
