@@ -1,4 +1,4 @@
-# EDR evasion in Rust with Direct Syscalls
+# Hells Gate EDR evasion in Rust with Direct Syscalls
 
 # About
 
