@@ -14,7 +14,10 @@ a few other API calls that you must rebuild as syscalls, so this just demonstrat
 This technique is also referred to as Hells Gate, so this is a hells gate implementation
 in Rust. Here is an excellent blog post about Hells Gate https://redops.at/en/blog/exploring-hells-gate.
 
-Check my [blog post](https://fluxsec.red/rust-edr-evasion-hells-gate) for this technique! If you like this, 
+Check my [blog post](https://fluxsec.red/rust-edr-evasion-hells-gate) for this technique! Also I have published
+a YouTube video on this where we dive deep into the topic [https://www.youtube.com/@FluxSec](https://www.youtube.com/@FluxSec)
+
+If you like this, 
 please subscribe to my [Twitter](https://twitter.com/0xfluxsec) and [YouTube](https://www.youtube.com/@FluxSec) 
 it would really help me!
 
