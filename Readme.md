@@ -11,9 +11,6 @@ any references to an implementation in Rust - so hopefully this showcases that.
 This POC demonstrates a call down into NtOpenProcess; for this to be a fully functional malware loader there are
 a few other API calls that you must rebuild as syscalls, so this just demonstrates the technique as a POC.
 
-This technique is also referred to as Hells Gate, so this is a hells gate implementation
-in Rust. Here is an excellent blog post about Hells Gate https://redops.at/en/blog/exploring-hells-gate.
-
 Check my [blog post](https://fluxsec.red/rust-edr-evasion-hells-gate) for this technique! Also I have published
 a YouTube video on this where we dive deep into the topic 
 [https://www.youtube.com/watch?v=aw6QO4ZDg_U](https://www.youtube.com/watch?v=aw6QO4ZDg_U)
