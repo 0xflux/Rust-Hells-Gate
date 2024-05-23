@@ -11,13 +11,13 @@ any references to an implementation in Rust - so hopefully this showcases that.
 This POC demonstrates a call down into NtOpenProcess; for this to be a fully functional malware loader there are
 a few other API calls that you must rebuild as syscalls, so this just demonstrates the technique as a POC.
 
-Check my [blog post](https://fluxsec.red/rust-edr-evasion-hells-gate) for this technique! Also I have published
+Check my [blog post at fluxsec.red](https://fluxsec.red/rust-edr-evasion-hells-gate) for this technique! Also I have published
 a YouTube video on this where we dive deep into the topic 
 [https://www.youtube.com/watch?v=aw6QO4ZDg_U](https://www.youtube.com/watch?v=aw6QO4ZDg_U)
 
 If you like this, 
 please subscribe to my [Twitter](https://twitter.com/0xfluxsec) and [YouTube](https://www.youtube.com/@FluxSec) 
-it would really help me!
+it would really help me! Feel free to reach out to me on Twitter also, would be great to connect!
 
 ## Usage
 
