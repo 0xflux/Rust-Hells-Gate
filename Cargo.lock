@@ -24,8 +24,15 @@ dependencies = [
 name = "rust_syscalls"
 version = "0.1.0"
 dependencies = [
+ "str_crypter",
  "windows",
 ]
+
+[[package]]
+name = "str_crypter"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c5857889d0cbbd540ab41608a49e34b76ea1da0d911aad56067063562f2fa5f2"
 
 [[package]]
 name = "syn"

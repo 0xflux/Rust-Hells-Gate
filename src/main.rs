@@ -3,7 +3,8 @@ use std::env;
 use std::ffi::c_void;
 use std::mem::size_of;
 use std::ptr::null_mut;
-use windows::core::imp::{GetProcAddress};
+use str_crypter::{sc, decrypt_string};
+use windows::core::imp::GetProcAddress;
 use windows::core::PCSTR;
 use windows::Win32::Foundation::{FALSE, HANDLE, NTSTATUS, UNICODE_STRING};
 use windows::Win32::System::LibraryLoader::LoadLibraryA;
@@ -25,7 +26,13 @@ fn main() {
     // open_process_api(pid);
 
     // call NtOpenProcess via System Service Number
-    let ssn = get_ssn(PCSTR("NtOpenProcess\0".as_ptr()));
+    let nt = match sc!("NtOpenProcess", 20) {
+        Ok(s) => s,
+        Err(e) => panic!("Error converting  string: {e}"),
+    };
+    let nt = nt.as_str();
+
+    let ssn = get_ssn(PCSTR(nt.as_ptr()));
     let ssn = match ssn {
         None => panic!("[-] Unable to get SSN"),
         Some(s) => {
