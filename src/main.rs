@@ -133,9 +133,13 @@ fn get_ssn(nt_function: PCSTR) -> Option<u32> {
         return None;
     }
 
-    // read the syscall number from the functions address
+    // read the syscall number from the function's address
     let nt_function_address = nt_function_address.unwrap() as *const u8;
-    let nt_function_ssn = unsafe { *(nt_function_address.add(4) as *const u32) };
+    let byte4 = unsafe { *nt_function_address.add(4) };
+    let byte5 = unsafe { *nt_function_address.add(5) };
+    
+    // combine the fourth and fifth bytes into a u32 (DWORD)
+    let nt_function_ssn = ((byte5 as u32) << 8) | (byte4 as u32);
 
     Some(nt_function_ssn)
 }
