@@ -1,15 +1,19 @@
 use std::arch::asm;
-use std::env;
-use std::ffi::c_void;
+use std::os::windows::ffi::OsStringExt;
+use std::{env, slice};
+use std::ffi::{c_void, CStr, OsString};
 use std::mem::size_of;
 use std::ptr::null_mut;
 use str_crypter::{sc, decrypt_string};
 use windows::core::imp::GetProcAddress;
 use windows::core::PCSTR;
-use windows::Win32::Foundation::{FALSE, HANDLE, NTSTATUS, UNICODE_STRING};
+use windows::Win32::Foundation::{HANDLE, NTSTATUS, UNICODE_STRING};
+use windows::Win32::System::Kernel::LIST_ENTRY;
 use windows::Win32::System::LibraryLoader::LoadLibraryA;
-use windows::Win32::System::Threading::{OpenProcess, PROCESS_ALL_ACCESS};
-use windows::Win32::System::Diagnostics::Debug::{SetUnhandledExceptionFilter, EXCEPTION_POINTERS};
+use windows::Win32::System::SystemServices::{IMAGE_DOS_HEADER, IMAGE_DOS_SIGNATURE, IMAGE_IMPORT_DESCRIPTOR, IMAGE_NT_SIGNATURE};
+use windows::Win32::System::Threading::{PEB, PEB_LDR_DATA, PROCESS_ALL_ACCESS};
+use windows::Win32::System::Diagnostics::Debug::{SetUnhandledExceptionFilter, EXCEPTION_POINTERS, IMAGE_NT_HEADERS64};
+use windows::Win32::System::WindowsProgramming::LDR_DATA_TABLE_ENTRY;
 
 fn main() {
 
@@ -22,8 +26,8 @@ fn main() {
     // get pid from first positional argument
     let pid = cli_pid();
 
-    // demonstrate opening process via the pid
-    // open_process_api(pid);
+    // read iat
+    read_iat();
 
     // call NtOpenProcess via System Service Number
     let nt = match sc!("NtOpenProcess", 20) {
@@ -71,19 +75,6 @@ fn main() {
         println!("[+] Successfully opened process. Handle: {:?}", process_handle);
     } else {
         println!("[-] Failed to open process. NTSTATUS: {:#x}", status.0);
-    }
-}
-
-/// Make a call to OpenProcess via the ordinary Windows API
-fn open_process_api(pid: u32) {
-    let res = unsafe {
-        OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid)
-    };
-
-    if res.is_ok() {
-        println!("[+] Handle obtained, value: {:?}", res.unwrap());
-    } else {
-        println!("[-] Unable to get handle. Error: {:?}", res)
     }
 }
 
@@ -182,4 +173,171 @@ unsafe extern "system" fn exception_filter(pointers: *const EXCEPTION_POINTERS) 
     println!("Exception caught.. address: {:?}", exception_record.ExceptionAddress);
     println!("Exception code: {:#x}", exception_record.ExceptionCode.0 as u32);
     0
+}
+
+// Read from IAT for Hell's Gate technique 
+
+/// Return a pointer to the PEB
+unsafe fn get_peb_ptr() -> *const PEB {
+    let peb: *const PEB;
+    // access the peb directly via the GS register
+    asm!(
+        "mov {}, gs:[0x60]",
+        out(reg) peb,
+    );
+
+    peb
+}
+
+fn read_iat() {
+    // get peb via GS register
+    let peb: *const PEB = unsafe { get_peb_ptr() };
+
+    unsafe {
+        // get the loader data section
+        let loader_section = (*peb).Ldr; // points to NTDLL where the PEB_LDR_DATA exists, containing initialised data.
+        println!("Loader section address: {:p}", loader_section);
+
+         // Verify the loader section
+         let loader_section = &*(loader_section as *const PEB_LDR_DATA);
+         println!("InMemoryOrderModuleList: {:p}", loader_section.InMemoryOrderModuleList.Flink);
+        
+        // get the header of the module list, accessed via the Flink (aka the next link in the doubly linked list)
+        // let module_list = (*loader_section).InMemoryOrderModuleList.Flink; // points to the heap
+
+        let module_list = loader_section.InMemoryOrderModuleList.Flink;
+        println!("Module list header address: {:p}", module_list);
+
+        let mut current_entry: *mut LIST_ENTRY = module_list;
+        println!("Current entry address: {:p}", current_entry);
+
+        println!();
+        println!();
+
+        // iterate the linked list, this will exit once we have returned to the head of the linked list.
+        // we need to change our immutable pointer to a mutable one
+        while current_entry != &(*loader_section).InMemoryOrderModuleList as *const _ as *mut _ {
+
+            println!("Current entry: {:p}", current_entry);
+
+            // Verify current entry content
+            let ldr_entry = &*(current_entry as *mut LDR_DATA_TABLE_ENTRY);
+            println!("LDR entry DllBase: {:p}", ldr_entry.DllBase);
+            // Print FullDllName
+            let full_dll_name = &ldr_entry.FullDllName;
+            let dll_name = read_wide_string(full_dll_name.Buffer.0, full_dll_name.Length as usize);
+            println!("LDR entry FullDllName: {}", dll_name);
+
+            // Dump details to verify against x64dbg
+            println!("Flink: {:p}, Blink: {:p}", (*current_entry).Flink, (*current_entry).Blink);
+
+            let mut base_address: *mut c_void = ldr_entry.DllBase;
+
+            println!("Base address: {:p}", base_address);
+
+
+            println!("Base address after adjustment: {:p}", base_address);
+
+            // Verify the memory content at the base address before reading the DOS header
+            if base_address.is_null() || (base_address as usize) < 0x10000 {
+                println!("Invalid DllBase address: {:p}", base_address);
+                current_entry = (*current_entry).Flink;
+                continue;
+            }
+
+            let dos_header: IMAGE_DOS_HEADER = read_memory(base_address as *const IMAGE_DOS_HEADER);
+            println!("DOS header e_magic: {:#X}", dos_header.e_magic);
+
+            if dos_header.e_magic != IMAGE_DOS_SIGNATURE {
+                println!("Invalid DOS signature: {:#X}", dos_header.e_magic);
+                current_entry = (*current_entry).Flink;
+                continue;
+            }
+
+            println!("Hello 2?");
+
+            // now read NT headers
+            let nt_header: IMAGE_NT_HEADERS64 = read_memory(base_address.offset(dos_header.e_lfanew as isize) as *const IMAGE_NT_HEADERS64);
+            if nt_header.Signature != IMAGE_NT_SIGNATURE {
+                current_entry = (*current_entry).Flink;
+                continue;
+            }
+
+            // locate the import directory
+            // optional header contains information about the PE, including size and location of tables
+            // DataDirectory is an array of IMAGE_DATA_DIRECTORY structs, each entry points to different data directories
+            // DataDirectory[1] is the IAT
+            // The VirtualAddress field is the RVA (relative to the base addr of the module) of the Import Directory, which we can then convert
+            // https://learn.microsoft.com/en-us/archive/msdn-magazine/2002/march/inside-windows-an-in-depth-look-into-the-win32-portable-executable-file-format-part-2
+            let import_dir_rva = nt_header.OptionalHeader.DataDirectory[1].VirtualAddress;
+            if import_dir_rva == 0 {
+                current_entry = (*current_entry).Flink;
+                continue;
+            }
+
+            // convert RVA to VA
+            let import_dir_addr = base_address.offset(import_dir_rva as isize) as *const IMAGE_IMPORT_DESCRIPTOR;
+
+            // read and print the import descriptors
+            let mut import_descriptor = read_memory(import_dir_addr);
+            while import_descriptor.Name != 0 {
+                let name_address = base_address.offset(import_descriptor.Name as isize);
+                let dll_name = CStr::from_ptr(name_address as *const i8).to_str().unwrap_or("Unknown");
+                println!("DLL: {}", dll_name);
+
+                // read thunk data
+                let mut thunk_address = base_address.offset(import_descriptor.FirstThunk as isize) as *const usize;
+                while read_memory(thunk_address) != 0 {
+                    let thunk_data: usize = read_memory(thunk_address);
+                    let func_name_address = base_address.offset(thunk_data as isize + 2) as *const i8; // skip hint 2 bytes
+                    let func_name = CStr::from_ptr(func_name_address).to_str().unwrap_or("Unknown");
+                    println!("Function: {}", func_name);
+
+                    thunk_address = thunk_address.offset(1);
+                }
+
+                import_descriptor = read_memory(import_dir_addr.offset(1))
+            }
+
+            current_entry = (*current_entry).Flink;
+        }
+    }
+    
+}
+
+unsafe fn read_memory<T>(address: *const T) -> T {
+    std::ptr::read(address)
+}
+
+unsafe fn get_image_base(entry: *mut LIST_ENTRY) -> *const u8 {
+    // Cast the LIST_ENTRY to LDR_DATA_TABLE_ENTRY to access the DllBase field
+    let ldr_entry = entry as *mut LDR_DATA_TABLE_ENTRY;
+    (*ldr_entry).DllBase as *const u8
+}
+
+unsafe fn read_wide_string(buffer: *const u16, length: usize) -> String {
+    let slice = slice::from_raw_parts(buffer, length / 2); // length is in bytes, convert to number of u16
+    let os_string = OsString::from_wide(slice);
+    os_string.to_string_lossy().into_owned()
+}
+
+fn find_module_base(peb: *const PEB, module_name: &str) -> Option<*mut u8> {
+    unsafe {
+        let loader_section = (*peb).Ldr;
+        let loader_section = &*(loader_section as *const PEB_LDR_DATA);
+        let mut current_entry: *mut LIST_ENTRY = loader_section.InMemoryOrderModuleList.Flink;
+
+        while current_entry != &loader_section.InMemoryOrderModuleList as *const _ as *mut _ {
+            let ldr_entry = &*(current_entry as *mut LDR_DATA_TABLE_ENTRY);
+            let full_dll_name = &ldr_entry.FullDllName;
+            let dll_name = read_wide_string(full_dll_name.Buffer.0, full_dll_name.Length as usize);
+
+            if dll_name.to_lowercase() == module_name.to_lowercase() {
+                return Some(ldr_entry.DllBase as *mut u8);
+            }
+
+            current_entry = (*current_entry).Flink;
+        }
+    }
+    None
 }
