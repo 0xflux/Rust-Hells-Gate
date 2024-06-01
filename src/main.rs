@@ -179,6 +179,7 @@ unsafe extern "system" fn exception_filter(pointers: *const EXCEPTION_POINTERS) 
 #[allow(unused_variables)]
 #[allow(unused_assignments)]
 fn get_module_base_asm(module_name: &str) -> Option<usize> {
+    
     let mut peb: usize;
     let mut ldr: usize;
     let mut in_memory_order_module_list: usize;
@@ -194,6 +195,9 @@ fn get_module_base_asm(module_name: &str) -> Option<usize> {
             ldr = out(reg) ldr,
             in_memory_order_module_list = out(reg) in_memory_order_module_list,
         );
+
+        println!("[+] Found the PEB and the InMemoryOrderModuleList at: {:p}", in_memory_order_module_list as *const c_void);
+        println!("[i] Iterating through modules loaded into the process, searching for {}", module_name);
 
         // set the current entry to the head of the list
         current_entry = in_memory_order_module_list;
