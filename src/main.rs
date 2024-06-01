@@ -299,14 +299,14 @@ fn get_function_from_exports(dll_name: &str, needle: &str) -> Option<*const c_vo
         
         // read the function name
         let function_name = unsafe {
-            let name_ptr = name_addr as *const u8;
+            let char = name_addr as *const u8;
             let mut len = 0;
             // iterate over the memory until a null terminator is found
-            while *name_ptr.add(len) != 0 {
+            while *char.add(len) != 0 {
                 len += 1;
             }
 
-            std::slice::from_raw_parts(name_ptr, len)
+            std::slice::from_raw_parts(char, len)
         };
 
         let function_name = std::str::from_utf8(function_name).unwrap_or("Invalid UTF-8");
