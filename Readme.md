@@ -28,7 +28,7 @@ it would really help me! Feel free to reach out to me on Twitter also, would be 
 cargo run -- <pid>
 ```
 
-![image](https://github.com/0xflux/Rust-syscall-EDR-evasion/assets/49762827/61137b3a-788e-4dcd-afee-6543dfa69aab)
+![image](https://github.com/0xflux/Rust-Hells-Gate/assets/49762827/f92f0011-fd54-4596-a3b2-6c9857a650ca)
 
 ### Proof:
 
