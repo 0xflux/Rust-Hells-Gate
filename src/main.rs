@@ -178,8 +178,8 @@ unsafe extern "system" fn exception_filter(pointers: *const EXCEPTION_POINTERS) 
 /// Returns the DLL base address as a Option<usize> 
 #[allow(unused_variables)]
 #[allow(unused_assignments)]
-fn get_module_base_asm(module_name: &str) -> Option<usize> {
-    
+fn get_module_base(module_name: &str) -> Option<usize> {
+
     let mut peb: usize;
     let mut ldr: usize;
     let mut in_memory_order_module_list: usize;
@@ -250,7 +250,7 @@ fn get_module_base_asm(module_name: &str) -> Option<usize> {
 fn get_function_from_exports(dll_name: &str, needle: &str) -> Option<*const c_void> {
 
     // get the dll base address
-    let dll_base = match get_module_base_asm(dll_name) {
+    let dll_base = match get_module_base(dll_name) {
         Some(a) => a,
         None => panic!("Unable to get address"),
     } as *mut c_void;
